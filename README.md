@@ -6,7 +6,7 @@
 
 Restore NuGet packages and repair references for the project (use libraries from terminal folder).
 
-# Телеграм бот для Альфа Директ 4.0 (библиотека ADSDK.DLL)
+# Телеграм бот для Альфа Директ 4.0 (библиотека ADSDK.dll)
 1) Проверяет соединение с сервером и сообщает о разрывах в Telegram
 2) Автоматически переподключается в случае разрыва соединения
 3) Присылает балансы в настроенное время
