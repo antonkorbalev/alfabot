@@ -12,7 +12,7 @@ namespace RemoteBot.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.5.0.0")]
     internal sealed partial class RemoteBot : global::System.Configuration.ApplicationSettingsBase {
         
         private static RemoteBot defaultInstance = ((RemoteBot)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new RemoteBot())));
@@ -20,6 +20,33 @@ namespace RemoteBot.Properties {
         public static RemoteBot Default {
             get {
                 return defaultInstance;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("token")]
+        public string Token {
+            get {
+                return ((string)(this["Token"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("name")]
+        public string Name {
+            get {
+                return ((string)(this["Name"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("user")]
+        public string TelegramUserName {
+            get {
+                return ((string)(this["TelegramUserName"]));
             }
         }
         
@@ -52,28 +79,37 @@ namespace RemoteBot.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("[your token]")]
-        public string Token {
+        [global::System.Configuration.DefaultSettingValueAttribute("21")]
+        public int BalanceUpdateHour {
             get {
-                return ((string)(this["Token"]));
+                return ((int)(this["BalanceUpdateHour"]));
             }
         }
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("[your bot name]")]
-        public string Name {
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int BalanceUpdateMinute {
             get {
-                return ((string)(this["Name"]));
+                return ((int)(this["BalanceUpdateMinute"]));
             }
         }
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("[your username]")]
-        public string TelegramUserName {
+        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost/api/takebalance?key={0}&date={1}&value={2}")]
+        public string BalanceReportString {
             get {
-                return ((string)(this["TelegramUserName"]));
+                return ((string)(this["BalanceReportString"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("526FBBFBDEE1483FB4157826008008A1")]
+        public string BalanceReportKey {
+            get {
+                return ((string)(this["BalanceReportKey"]));
             }
         }
     }

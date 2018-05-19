@@ -14,7 +14,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using System.Security;
-using System.Reflection;
+using System.Net;
 
 namespace RemoteBot
 {
@@ -25,7 +25,10 @@ namespace RemoteBot
         static BackgroundWorker _bgw;
         static ChatId _chatId;
         static DateTime _lastReportDate = DateTime.MinValue;
+        static DateTime _lastBalanceUpdate = DateTime.MinValue;
         static DateTime _lastConnectionCheck = DateTime.MinValue;
+        const int RUB_ID = 174368;
+        static ObjectEntity[] _allObjects;
 
         static string _login;
         static SecureString _pass;
@@ -56,7 +59,10 @@ namespace RemoteBot
             if (_client == null)
                 return;
 
-            Thread.Sleep(1000);
+            Console.WriteLine("Waiting..");
+            Thread.Sleep(3000);
+
+            _allObjects = _client.Dictionaries.GetObjects();
             _bot = new TelegramBotClient(Properties.RemoteBot.Default.Token);
             _bgw = new BackgroundWorker();
             _bgw.DoWork += CheckBot;
@@ -89,7 +95,8 @@ namespace RemoteBot
                                     upd.Message.From.FirstName);
                                 break;
                             case "/balances":
-                                SendText(GetPositionsText());
+                                double totalBal;
+                                SendText(GetPositionsText(out totalBal));
                                 break;
                             case "/reconnect":
                                 Reconnect();
@@ -102,13 +109,34 @@ namespace RemoteBot
                     }
                     var now = DateTime.Now;
                     if ((now.DayOfWeek != DayOfWeek.Sunday) && (now.DayOfWeek != DayOfWeek.Saturday))
+                    {
                         if (now.Hour == Properties.RemoteBot.Default.ReportHour)
                             if (now.Minute == Properties.RemoteBot.Default.ReportMinute)
                                 if (now - _lastReportDate > TimeSpan.FromMinutes(1))
                                 {
-                                    _lastReportDate = DateTime.Now;
-                                    SendText(GetPositionsText());
+                                    _lastReportDate = now;
+                                    double totalBal;
+                                    SendText(GetPositionsText(out totalBal));
                                 }
+                        if (now.Hour == Properties.RemoteBot.Default.BalanceUpdateHour)
+                            if (now.Minute == Properties.RemoteBot.Default.BalanceUpdateMinute)
+                                if (now - _lastBalanceUpdate > TimeSpan.FromMinutes(1))
+                                {
+                                    double totalBal;
+                                    GetPositionsText(out totalBal);
+                                    var url = string.Format(@Properties.RemoteBot.Default.BalanceReportString,
+                                        Properties.RemoteBot.Default.BalanceReportKey,
+                                        now.ToShortDateString(),
+                                        totalBal);
+                                    using (var client = new WebClient())
+                                    {
+                                        var resp = client.DownloadString(url);
+                                        Console.WriteLine("[{1}] Updating balances: {0}", url, resp);
+                                        SendText("Every day balance updated: {0}", resp);
+                                    }
+                                    _lastBalanceUpdate = now;
+                                }
+                    }
 
                     if (DateTime.Now - _lastConnectionCheck > TimeSpan.FromMinutes(Properties.RemoteBot.Default.ReconnectPeriod))
                     {
@@ -130,23 +158,41 @@ namespace RemoteBot
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
-					// throw;
+                    //Console.WriteLine(ex);
                 }
                 Thread.Sleep(1000);
             }
         }
 
-        private static string GetPositionsText()
+        private static string GetPositionsText(out double totalBalance)
         {
+            totalBalance = 0;
+            double totalProfit = 0;
             var positions = _client.Portfolio.GetPositions();
             var sb = new StringBuilder();
             sb.AppendLine("Balances:");
-            var totalBalance = positions.Where(o => o.VariationMargin == 0).Sum(o => o.SubAccNalPos);
-            var totalProfit = positions.Where(o => o.VariationMargin != 0).Sum(o => o.VariationMargin);
-            sb.AppendLine(string.Format(" {0} {1}{2}", totalBalance, totalProfit > 0 ? "+" :"-", totalProfit));
-            foreach (var pos in positions.Where(o => o.VariationMargin != 0))
-                sb.AppendLine(string.Format(" {0}{1}", pos.VariationMargin > 0 ? "+" : "-", pos.VariationMargin));
+
+            foreach (var pos in positions)
+            {
+                var ins = _allObjects.First(o => o.IdObject == pos.IdObject);
+                var isMoney = ins.IdObject == RUB_ID;
+                if (isMoney)
+                    totalBalance += pos.SubAccNalPos;
+                else
+                    totalProfit += pos.VariationMargin;
+                sb.AppendLine(string.Format("{0}: {1} {2} RUB", 
+                    pos.IdAccount, 
+                    ins.NameObject, 
+                    isMoney ? pos.SubAccNalPos.ToString() : 
+                    (pos.VariationMargin > 0 ? 
+                    string.Format("+{0}", pos.VariationMargin) 
+                    : string.Format("-{0}", pos.VariationMargin)
+                    )));
+            }
+            sb.Append(string.Format("Total balance: {0} {1}{2} RUB",
+                totalBalance, 
+                totalProfit > 0 ? "+" : "-",
+                totalProfit));
             return sb.ToString();
         }
 
@@ -177,7 +223,6 @@ namespace RemoteBot
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-				// throw;
             }
         }
 
